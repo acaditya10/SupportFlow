@@ -3,7 +3,7 @@ import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBjs66LxAFxqzLDWs_QeB0JHV91rESMttI",
+  apiKey: import.meta.env.VITE_GEMINI_API_KEY,
   authDomain: "support-flow-365.firebaseapp.com",
   projectId: "support-flow-365",
   storageBucket: "support-flow-365.firebasestorage.app",
