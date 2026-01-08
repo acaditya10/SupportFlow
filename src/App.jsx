@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { auth, db } from './firebase';
-import { 
-  onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut 
+import {
+  onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut
 } from 'firebase/auth';
-import { 
-  collection, addDoc, query, orderBy, onSnapshot, doc, setDoc, updateDoc, serverTimestamp 
+import {
+  collection, addDoc, query, orderBy, onSnapshot, doc, setDoc, updateDoc, serverTimestamp, deleteDoc
 } from 'firebase/firestore';
-import { 
-  Send, LogOut, MessageSquare, ShieldCheck, Search, MoreVertical, Sun, Moon, ChevronLeft, Paperclip 
+import {
+  Send, LogOut, MessageSquare, ShieldCheck, Search, MoreVertical, Sun, Moon, ChevronLeft, Paperclip, Trash2
 } from 'lucide-react';
 
 // --- HELPER: Get Initials for Avatars ---
@@ -74,7 +74,7 @@ export default function App() {
   return (
     <div className="h-screen bg-slate-50 dark:bg-slate-950 transition-colors duration-500 overflow-hidden text-slate-900 dark:text-slate-100">
       {/* Universal Theme Toggle */}
-      <button 
+      <button
         onClick={() => setDarkMode(!darkMode)}
         className="fixed top-6 right-6 z-[999] p-3 rounded-2xl bg-white dark:bg-slate-800 shadow-xl border border-slate-200 dark:border-slate-700 hover:scale-110 active:scale-95 transition-all"
       >
@@ -99,7 +99,7 @@ function Login() {
   const handleAuth = async (e) => {
     e.preventDefault();
     try {
-      if(isLogin) await signInWithEmailAndPassword(auth, email, pw);
+      if (isLogin) await signInWithEmailAndPassword(auth, email, pw);
       else await createUserWithEmailAndPassword(auth, email, pw);
     } catch (err) { alert(err.message); }
   };
@@ -155,20 +155,19 @@ function AdminDashboard({ user }) {
           </div>
           <div className="relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input 
+            <input
               value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search customers..." 
+              placeholder="Search customers..."
               className="w-full bg-slate-100 dark:bg-slate-800 p-3 pl-10 rounded-xl text-sm outline-none border-none dark:text-white transition-all focus:ring-2 focus:ring-indigo-500"
             />
           </div>
         </div>
         <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
           {filteredUsers.map(u => (
-            <div 
+            <div
               key={u.id} onClick={() => setSelectedUser(u)}
-              className={`p-4 rounded-[1.8rem] cursor-pointer flex items-center gap-4 transition-all ${
-                selectedUser?.id === u.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none' : 'hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
+              className={`p-4 rounded-[1.8rem] cursor-pointer flex items-center gap-4 transition-all ${selectedUser?.id === u.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none' : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
             >
               <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold ${selectedUser?.id === u.id ? 'bg-white/20' : 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600'}`}>{getInitials(u.email)}</div>
               <div className="flex-1 min-w-0">
@@ -179,7 +178,7 @@ function AdminDashboard({ user }) {
           ))}
         </div>
         <button onClick={() => signOut(auth)} className="m-6 p-4 bg-slate-100 dark:bg-slate-800 rounded-2xl text-slate-500 font-black text-[10px] tracking-[0.2em] flex items-center justify-center gap-2 hover:text-red-500 transition-all">
-          <LogOut size={16}/> LOGOUT TERMINAL
+          <LogOut size={16} /> LOGOUT TERMINAL
         </button>
       </aside>
 
@@ -187,7 +186,7 @@ function AdminDashboard({ user }) {
         {selectedUser ? (
           <>
             <header className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center gap-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
-              <button className="md:hidden p-2 text-indigo-600" onClick={() => setSelectedUser(null)}><ChevronLeft/></button>
+              <button className="md:hidden p-2 text-indigo-600" onClick={() => setSelectedUser(null)}><ChevronLeft /></button>
               <div className="w-10 h-10 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center font-bold text-slate-500 text-xs">{getInitials(selectedUser.email)}</div>
               <h2 className="font-black text-slate-800 dark:text-white text-sm uppercase tracking-tight">{selectedUser.email}</h2>
             </header>
@@ -195,7 +194,7 @@ function AdminDashboard({ user }) {
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-slate-200 dark:text-slate-800 p-12 text-center">
-            <MessageSquare size={120} strokeWidth={1} className="opacity-20 mb-4"/>
+            <MessageSquare size={120} strokeWidth={1} className="opacity-20 mb-4" />
             <p className="font-black uppercase tracking-[0.3em] text-slate-300 dark:text-slate-700">Select Conversation</p>
           </div>
         )}
@@ -211,10 +210,10 @@ function UserDashboard({ user }) {
       <div className="w-full max-w-4xl h-full md:h-[800px] flex flex-col bg-white dark:bg-slate-900 md:rounded-[3.5rem] shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
         <header className="p-8 bg-indigo-600 text-white flex justify-between items-center">
           <div className="flex items-center gap-4">
-            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md"><MessageSquare size={24}/></div>
+            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-md"><MessageSquare size={24} /></div>
             <h1 className="font-black uppercase text-sm tracking-[0.2em]">Customer Support</h1>
           </div>
-          <button onClick={() => signOut(auth)} className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl transition-all"><LogOut size={20}/></button>
+          <button onClick={() => signOut(auth)} className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl transition-all"><LogOut size={20} /></button>
         </header>
         <ChatWindow chatId={user.uid} currentUser={user} isChattingWithAdmin={true} />
       </div>
@@ -253,7 +252,7 @@ function ChatWindow({ chatId, currentUser, isChattingWithAdmin }) {
   const handleTyping = (val) => {
     setNewMessage(val);
     const myId = isChattingWithAdmin ? currentUser.uid : "ADMIN_ID";
-    updateDoc(doc(db, "users", myId), { 
+    updateDoc(doc(db, "users", myId), {
       isTyping: val.length > 0,
       typingTo: isChattingWithAdmin ? "ADMIN_ID" : chatId
     });
@@ -273,18 +272,28 @@ function ChatWindow({ chatId, currentUser, isChattingWithAdmin }) {
     updateDoc(doc(db, "users", myId), { isTyping: false });
 
     const msg = newMessage;
-    setNewMessage(""); 
+    setNewMessage("");
 
-    await addDoc(collection(db, "chats", chatId, "messages"), { 
-      text: msg, 
-      senderId: currentUser.uid, 
-      createdAt: serverTimestamp() 
+    await addDoc(collection(db, "chats", chatId, "messages"), {
+      text: msg,
+      senderId: currentUser.uid,
+      createdAt: serverTimestamp()
     });
 
     // Update the sidebar metadata
-    await setDoc(doc(db, "users", chatId), { 
-      lastActive: serverTimestamp() 
+    await setDoc(doc(db, "users", chatId), {
+      lastActive: serverTimestamp()
     }, { merge: true });
+  };
+
+  const deleteMessage = async (msgId) => {
+    if (!window.confirm("Delete this message?")) return;
+    try {
+      await deleteDoc(doc(db, "chats", chatId, "messages", msgId));
+    } catch (err) {
+      console.error("Error deleting message:", err);
+      alert("Failed to delete message");
+    }
   };
 
   return (
@@ -293,29 +302,38 @@ function ChatWindow({ chatId, currentUser, isChattingWithAdmin }) {
         {messages.map((msg) => {
           const isMe = msg.senderId === currentUser.uid;
           return (
-            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[85%] md:max-w-[70%] p-4 px-6 rounded-[2rem] text-[13px] font-medium leading-relaxed shadow-sm ${
-                isMe ? 'bg-indigo-600 text-white rounded-tr-none shadow-indigo-100 dark:shadow-none' : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none'
-              }`}>
+            <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group items-end gap-2`}>
+              {currentUser.email === "admin@test.com" && !isMe && (
+                <button onClick={() => deleteMessage(msg.id)} className="opacity-0 group-hover:opacity-100 p-2 text-slate-400 hover:text-red-500 transition-all">
+                  <Trash2 size={14} />
+                </button>
+              )}
+              <div className={`max-w-[85%] md:max-w-[70%] p-4 px-6 rounded-[2rem] text-[13px] font-medium leading-relaxed shadow-sm ${isMe ? 'bg-indigo-600 text-white rounded-tr-none shadow-indigo-100 dark:shadow-none' : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded-tl-none'
+                }`}>
                 {msg.text}
               </div>
+              {currentUser.email === "admin@test.com" && isMe && (
+                <button onClick={() => deleteMessage(msg.id)} className="opacity-0 group-hover:opacity-100 p-2 text-slate-400 hover:text-red-500 transition-all">
+                  <Trash2 size={14} />
+                </button>
+              )}
             </div>
           );
         })}
         {remoteIsTyping && <div className="flex justify-start"><TypingIndicator /></div>}
         <div ref={scrollRef} />
       </div>
-      
+
       <form onSubmit={sendMessage} className="p-8 pt-4 border-t border-slate-50 dark:border-slate-800 flex gap-4 bg-white dark:bg-slate-900">
         <div className="flex-1 flex gap-3 bg-slate-100 dark:bg-slate-800 p-2 px-4 rounded-[2rem] border border-transparent focus-within:ring-2 focus-within:ring-indigo-500 transition-all">
-          <button type="button" className="text-slate-400 hover:text-indigo-600 transition-colors"><Paperclip size={20}/></button>
-          <input 
+          <button type="button" className="text-slate-400 hover:text-indigo-600 transition-colors"><Paperclip size={20} /></button>
+          <input
             value={newMessage} onChange={(e) => handleTyping(e.target.value)}
             placeholder="Write a message..."
             className="flex-1 bg-transparent p-3 outline-none dark:text-white text-slate-900 font-medium text-sm placeholder:text-slate-400"
           />
           <button type="submit" className="bg-indigo-600 text-white p-3 px-5 rounded-2xl hover:bg-indigo-700 shadow-lg shadow-indigo-100 dark:shadow-none transition-all active:scale-90 flex items-center justify-center">
-            <Send size={18}/>
+            <Send size={18} />
           </button>
         </div>
       </form>
